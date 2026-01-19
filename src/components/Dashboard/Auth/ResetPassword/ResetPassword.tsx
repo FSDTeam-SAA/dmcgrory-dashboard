@@ -35,7 +35,7 @@ export default function ResetPassword() {
       <div className="bg-white rounded-2xl shadow-md p-10">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-semibold text-[#0B3B36] mb-2">
+          <h2 className="text-3xl font-semibold text-[#07589E] mb-2">
             Create a New Password
           </h2>
           <p className="text-[#343A40] mb-6">
@@ -87,7 +87,7 @@ export default function ResetPassword() {
 
         {/* Save Button */}
         <Button
-          className={`w-full bg-[#0B3B36] text-white py-6 rounded-md text-lg font-medium hover:bg-[#0B3B36] transition flex justify-center items-center gap-2 cursor-pointer ${
+          className={`w-full bg-[#07589E] text-white py-6 rounded-md text-lg font-medium hover:bg-[#07589E] transition flex justify-center items-center gap-2 cursor-pointer ${
             loading ? "cursor-not-allowed opacity-70" : ""
           }`}
           onClick={handleSave}

@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,16 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import { Menu, } from "lucide-react";
 import { signOut } from "next-auth/react";
-import Link from "next/link";
 import { useState } from "react";
 import HeaderTitle from "../ReusableComponents/HeaderTitle";
 
@@ -58,7 +50,7 @@ export default function DashboardHeader() {
           <Menu size={22} />
         </button>
 
-        <HeaderTitle title="Overview" subtitle="See your updates today!" />
+        <HeaderTitle title="Dashboard" subtitle="See your updates today!" />
       </div>
 
       {/* Right side */}

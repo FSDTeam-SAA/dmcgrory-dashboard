@@ -2,88 +2,25 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Pencil, Plus, Trash2, X } from "lucide-react";
-
-interface Dealer {
-  id: number;
-  createdDate: string;
-  dealerId: string;
-  dealerName: string;
-  email: string;
-  contact: string;
-  address: string;
-  vin: string;
-}
+import {
+  useCreateDealer,
+  useDealers,
+  useDeleteDealer,
+  useUpdateDealer,
+} from "@/lib/hooks/useDealer";
+import { Dealer } from "@/lib/types/dealer";
+import { toast } from "sonner";
 
 export default function DealersTable() {
-  // NOTE: useMemo not necessary here, but fine. We'll keep it.
-  const initialDealers: Dealer[] = useMemo(
-    () => [
-      {
-        id: 1,
-        createdDate: "28/12/2022",
-        dealerId: "DE3456",
-        dealerName: "Esther Howard",
-        email: "howard@gmail.com",
-        contact: "+880 1711-000000",
-        address: "Dhaka, Bangladesh",
-        vin: "1HGCM82633A004352",
-      },
-      {
-        id: 2,
-        createdDate: "02/04/2022",
-        dealerId: "DE3258",
-        dealerName: "Kristin Watson",
-        email: "watson@gmail.com",
-        contact: "+880 1811-000000",
-        address: "Chattogram, Bangladesh",
-        vin: "2HGCM82633A004999",
-      },
-      {
-        id: 3,
-        createdDate: "28/12/2022",
-        dealerId: "DE3456",
-        dealerName: "Esther Howard",
-        email: "howard@gmail.com",
-        contact: "+880 1911-000000",
-        address: "Sylhet, Bangladesh",
-        vin: "3HGCM82633A004888",
-      },
-      {
-        id: 4,
-        createdDate: "02/04/2022",
-        dealerId: "DE3258",
-        dealerName: "Kristin Watson",
-        email: "watson@gmail.com",
-        contact: "+880 1611-000000",
-        address: "Rajshahi, Bangladesh",
-        vin: "4HGCM82633A004777",
-      },
-      {
-        id: 5,
-        createdDate: "12/01/2023",
-        dealerId: "DE9911",
-        dealerName: "Robert Fox",
-        email: "robert@gmail.com",
-        contact: "+880 1511-000000",
-        address: "Khulna, Bangladesh",
-        vin: "5HGCM82633A004111",
-      },
-      {
-        id: 6,
-        createdDate: "23/06/2023",
-        dealerId: "DE7788",
-        dealerName: "Jenny Wilson",
-        email: "jenny@gmail.com",
-        contact: "+880 1411-000000",
-        address: "Barishal, Bangladesh",
-        vin: "6HGCM82633A004222",
-      },
-    ],
-    [],
-  );
+  const { data: dealersData, isLoading } = useDealers();
+  const createDealerMutation = useCreateDealer();
+  const updateDealerMutation = useUpdateDealer();
+  const deleteDealerMutation = useDeleteDealer();
 
-  // Keep dealers in state so delete can work.
-  const [dealers, setDealers] = useState(initialDealers);
+  // Use real data from API
+  const dealers = useMemo(() => {
+    return dealersData?.data || [];
+  }, [dealersData]);
 
   // ===== Modal state =====
   const [open, setOpen] = useState(false);
@@ -116,36 +53,59 @@ export default function DealersTable() {
     setModalType(null);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    console.log(`${modalType === "add" ? "Adding" : "Editing"} dealer:`, data);
-    closeModal();
+    const payload = {
+      dealerName: formData.get("dealerName") as string,
+      dealerId: formData.get("dealerId") as string,
+      email: formData.get("email") as string,
+      contact: formData.get("contact") as string,
+      vin: formData.get("vin") as string,
+    };
+
+    try {
+      if (modalType === "add") {
+        await createDealerMutation.mutateAsync(payload);
+      } else if (modalType === "edit" && selectedDealer) {
+        await updateDealerMutation.mutateAsync({
+          id: selectedDealer._id,
+          payload,
+        });
+      }
+      closeModal();
+      toast.success("Dealer saved successfully");
+    } catch (error) {
+      toast.error("Failed to save dealer");
+      console.error("Failed to save dealer:", error);
+    }
   };
 
-  const handleDelete = (dealer: Dealer) => {
-    // Replace with confirm modal + API call
-    const ok = confirm(`Delete dealer: ${dealer.dealerName}?`);
-    if (!ok) return;
-
-    setDealers((prev) => prev.filter((d) => d.id !== dealer.id));
-    // if deleted dealer was open in modal, close it
-    if (selectedDealer?.id === dealer.id) closeModal();
+  const handleDelete = async (dealer: Dealer) => {
+    try {
+      await deleteDealerMutation.mutateAsync(dealer._id);
+      toast.success("Dealer deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete dealer");
+      console.error("Failed to delete dealer:", error);
+    }
   };
 
-  // ===== Pagination =====
-  const PAGE_SIZE = 4;
+  // ===== Pagination (Local for now, or use meta from API if available) =====
   const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const totalItems = dealers.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
+  const totalPages =
+    dealersData?.meta?.totalPages || Math.ceil(totalItems / PAGE_SIZE);
   const safePage = Math.min(Math.max(page, 1), totalPages);
 
   const startIndex = (safePage - 1) * PAGE_SIZE;
   const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
-  const pageItems = dealers.slice(startIndex, endIndex);
+
+  // If using server-side pagination, we should update the hook to accept page/limit
+  // For now, we'll slice the local data if needed, but the API seems to return paginated data already
+  const pageItems = dealers;
 
   const goToPage = (p: number) => {
     const next = Math.min(Math.max(p, 1), totalPages);
@@ -204,11 +164,16 @@ export default function DealersTable() {
                 Dealer ID
               </th>
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
+                VIN
+              </th>
+
+              <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Dealer&apos;s Name
               </th>
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Dealer&apos;s Email
               </th>
+
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300 rounded-tr-xl">
                 Action
               </th>
@@ -216,10 +181,19 @@ export default function DealersTable() {
           </thead>
 
           <tbody>
-            {pageItems.length === 0 ? (
+            {isLoading ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={7}
+                  className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                >
+                  Loading dealers...
+                </td>
+              </tr>
+            ) : pageItems.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
                   className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
                 >
                   No dealers found.
@@ -227,13 +201,19 @@ export default function DealersTable() {
               </tr>
             ) : (
               pageItems.map((dealer) => (
-                <tr key={dealer.id} className="hover:bg-slate-50 transition">
+                <tr key={dealer._id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 text-sm text-center text-slate-700 border border-slate-300">
-                    {dealer.createdDate}
+                    {dealer.createdAt
+                      ? new Date(dealer.createdAt).toLocaleDateString("en-GB")
+                      : "—"}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-center font-medium text-slate-800 border border-slate-300">
                     {dealer.dealerId}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                    {dealer.vin}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
@@ -383,7 +363,11 @@ export default function DealersTable() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InfoItem
                     label="Created Date"
-                    value={selectedDealer?.createdDate}
+                    value={
+                      selectedDealer?.createdAt
+                        ? new Date(selectedDealer.createdAt).toLocaleString()
+                        : "—"
+                    }
                   />
                   <InfoItem
                     label="Dealer ID"
@@ -399,9 +383,6 @@ export default function DealersTable() {
                     value={selectedDealer?.contact}
                   />
                   <InfoItem label="VIN" value={selectedDealer?.vin} />
-                  <div className="sm:col-span-2">
-                    <InfoItem label="Address" value={selectedDealer?.address} />
-                  </div>
                 </div>
               ) : (
                 <form
@@ -445,27 +426,6 @@ export default function DealersTable() {
                       defaultValue={selectedDealer?.vin}
                       placeholder="e.g. 1HGCM82633A004352"
                     />
-                    <FormInput
-                      label="Created Date"
-                      name="createdDate"
-                      type="text"
-                      defaultValue={
-                        selectedDealer?.createdDate ||
-                        new Date().toLocaleDateString("en-GB")
-                      }
-                      placeholder="e.g. 28/12/2022"
-                    />
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                        Address
-                      </label>
-                      <textarea
-                        name="address"
-                        defaultValue={selectedDealer?.address}
-                        placeholder="Enter full address"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition min-h-[100px]"
-                      />
-                    </div>
                   </div>
                 </form>
               )}
