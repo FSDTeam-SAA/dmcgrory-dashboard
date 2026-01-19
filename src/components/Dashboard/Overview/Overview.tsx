@@ -1,26 +1,36 @@
-"use client"
+"use client";
 import { Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useDealers, useDeleteDealer } from "@/lib/hooks/useDealer";
 import { Dealer } from "@/lib/types/dealer";
 import { toast } from "sonner";
+import { useOverview } from "@/lib/hooks/useOverView";
 
 export default function Overview() {
   const { data: dealersData, isLoading } = useDealers();
   const deleteDealerMutation = useDeleteDealer();
+
+  const { data: overviewData, isLoading: overviewLoading } = useOverview();
 
   // Use real data from API
   const dealers = useMemo(() => {
     return dealersData?.data || [];
   }, [dealersData]);
 
+  const stats = useMemo(() => {
+    return (
+      overviewData?.data || {
+        totalDealers: 0,
+        totalAnnouncements: 0,
+      }
+    );
+  }, [overviewData]);
+
   // Take latest 5 dealers for overview
   const latestDealers = useMemo(() => {
     return dealers.slice(0, 5);
   }, [dealers]);
-
-  const totalDealersCount = dealersData?.meta?.total || 0;
 
   const handleDelete = async (dealer: Dealer) => {
     try {
@@ -74,7 +84,7 @@ export default function Overview() {
               Total Dealer
             </div>
             <div className="text-white text-4xl font-bold">
-              {isLoading ? "..." : `${totalDealersCount} Dealers`}
+              {overviewLoading ? "..." : `${stats.totalDealers} Dealers`}
             </div>
           </motion.div>
 
@@ -91,7 +101,9 @@ export default function Overview() {
               Submissions
             </div>
             <div className="text-blue-600 text-4xl font-bold">
-              95 Submissions
+              {overviewLoading
+                ? "..."
+                : `${stats.totalAnnouncements} Submissions`}
             </div>
           </motion.div>
         </motion.div>

@@ -3,76 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-
-interface Submission {
-  id: number;
-  createdDate: string;
-  dealerId: string;
-  modelsSeries: string;
-  mileage: string;
-  auctions: string;
-  color: string;
-  floorPrice: string;
-}
+import { Submission } from "@/lib/types/submission";
+import {
+  useDeleteSubmission,
+  useSubmissions,
+} from "@/lib/hooks/useSubmissions";
 
 export default function SubmissionForms() {
-  const initialSubmissions: Submission[] = useMemo(
-    () => [
-      {
-        id: 1,
-        createdDate: "28/12/2022",
-        dealerId: "DE3456",
-        modelsSeries: "Toyota Corolla 2023",
-        mileage: "12,000 km",
-        auctions: "Live Auction A",
-        color: "Silver",
-        floorPrice: "$22,000",
-      },
-      {
-        id: 2,
-        createdDate: "02/04/2022",
-        dealerId: "DE3258",
-        modelsSeries: "Honda Civic 2022",
-        mileage: "15,500 km",
-        auctions: "Bidding B",
-        color: "Black",
-        floorPrice: "$24,500",
-      },
-      {
-        id: 3,
-        createdDate: "12/01/2023",
-        dealerId: "DE9911",
-        modelsSeries: "Mazda CX-5 2023",
-        mileage: "8,000 km",
-        auctions: "Premium Auction",
-        color: "Soul Red",
-        floorPrice: "$31,000",
-      },
-      {
-        id: 4,
-        createdDate: "23/06/2023",
-        dealerId: "DE7788",
-        modelsSeries: "Nissan Altima 2021",
-        mileage: "45,000 km",
-        auctions: "Global Auction C",
-        color: "White",
-        floorPrice: "$18,000",
-      },
-      {
-        id: 5,
-        createdDate: "15/07/2023",
-        dealerId: "DE5544",
-        modelsSeries: "BMW 3 Series 2024",
-        mileage: "2,000 km",
-        auctions: "Elite Sale",
-        color: "Blue",
-        floorPrice: "$42,000",
-      },
-    ],
-    [],
-  );
+  const { data: submissionsData, isLoading } = useSubmissions();
+  const deleteSubmissionMutation = useDeleteSubmission();
 
-  const [submissions, setSubmissions] = useState(initialSubmissions);
+  const submissions = useMemo(() => {
+    return submissionsData?.data || [];
+  }, [submissionsData]);
+
   const [open, setOpen] = useState(false);
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
@@ -87,17 +31,17 @@ export default function SubmissionForms() {
     setSelectedSubmission(null);
   };
 
-  const handleDelete = (submission: Submission) => {
-    const ok = confirm(`Delete submission for Dealer: ${submission.dealerId}?`);
-    if (!ok) return;
-
-    setSubmissions((prev) => prev.filter((s) => s.id !== submission.id));
-    toast.success("Submission deleted successfully");
-    if (selectedSubmission?.id === submission.id) closeModal();
+  const handleDelete = async (submission: Submission) => {
+    try {
+      await deleteSubmissionMutation.mutateAsync(submission._id);
+      toast.success("Submission deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete submission:", error);
+    }
   };
 
   // ===== Pagination =====
-  const PAGE_SIZE = 4;
+  const PAGE_SIZE = 5;
   const [page, setPage] = useState(1);
   const totalItems = submissions.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
@@ -150,7 +94,10 @@ export default function SubmissionForms() {
                 Dealer ID
               </th>
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
-                Models & Series
+                VIN
+              </th>
+              <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
+                Vehicle
               </th>
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Mileage
@@ -165,10 +112,19 @@ export default function SubmissionForms() {
           </thead>
 
           <tbody>
-            {pageItems.length === 0 ? (
+            {isLoading ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={6}
+                  className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                >
+                  Loading submissions...
+                </td>
+              </tr>
+            ) : pageItems.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
                   className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
                 >
                   No submissions found.
@@ -177,23 +133,31 @@ export default function SubmissionForms() {
             ) : (
               pageItems.map((submission) => (
                 <tr
-                  key={submission.id}
+                  key={submission._id}
                   className="hover:bg-slate-50 transition"
                 >
                   <td className="px-6 py-4 text-sm text-center text-slate-700 border border-slate-300">
-                    {submission.createdDate}
+                    {submission.createdAt
+                      ? new Date(submission.createdAt).toLocaleDateString(
+                          "en-GB",
+                        )
+                      : "—"}
                   </td>
                   <td className="px-6 py-4 text-sm text-center font-medium text-slate-800 border border-slate-300">
                     {submission.dealerId}
                   </td>
+                  <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                    {submission.vin}
+                  </td>
                   <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
-                    {submission.modelsSeries}
+                    {submission.vehicleYear} {submission.model}{" "}
+                    {submission.series}
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
-                    {submission.mileage}
+                    {submission.mileage.toLocaleString()} km
                   </td>
                   <td className="px-6 py-4 text-sm text-center font-medium text-emerald-600 border border-slate-300">
-                    {submission.floorPrice}
+                    ${submission.floorPrice.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm text-center border border-slate-300">
                     <div className="flex items-center justify-center gap-2">
@@ -290,26 +254,48 @@ export default function SubmissionForms() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoItem
                   label="Created Date"
-                  value={selectedSubmission.createdDate}
+                  value={
+                    selectedSubmission.createdAt
+                      ? new Date(selectedSubmission.createdAt).toLocaleString()
+                      : "—"
+                  }
                 />
                 <InfoItem
                   label="Dealer ID"
                   value={selectedSubmission.dealerId}
                 />
+                <InfoItem label="VIN" value={selectedSubmission.vin} />
                 <InfoItem
-                  label="Models & Series"
-                  value={selectedSubmission.modelsSeries}
+                  label="Year"
+                  value={String(selectedSubmission.vehicleYear)}
                 />
-                <InfoItem label="Mileage" value={selectedSubmission.mileage} />
+                <InfoItem label="Model" value={selectedSubmission.model} />
+                <InfoItem label="Series" value={selectedSubmission.series} />
                 <InfoItem
-                  label="Auctions"
-                  value={selectedSubmission.auctions}
+                  label="Mileage"
+                  value={`${selectedSubmission.mileage.toLocaleString()} km`}
                 />
-                <InfoItem label="Color" value={selectedSubmission.color} />
+                <InfoItem label="Auction" value={selectedSubmission.auction} />
+                <InfoItem
+                  label="Interior Choice"
+                  value={selectedSubmission.interiorChoice}
+                />
                 <InfoItem
                   label="Floor Price"
-                  value={selectedSubmission.floorPrice}
+                  value={`$${selectedSubmission.floorPrice.toLocaleString()}`}
                 />
+                <div className="col-span-1 sm:col-span-2">
+                  <InfoItem
+                    label="Announcement"
+                    value={selectedSubmission.announcement}
+                  />
+                </div>
+                <div className="col-span-1 sm:col-span-2">
+                  <InfoItem
+                    label="Remarks"
+                    value={selectedSubmission.remarks}
+                  />
+                </div>
               </div>
             </div>
             <div className="p-6 pt-0 flex justify-end">
