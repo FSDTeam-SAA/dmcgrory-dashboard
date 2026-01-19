@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 interface Submission {
   id: number;
@@ -91,6 +92,7 @@ export default function SubmissionForms() {
     if (!ok) return;
 
     setSubmissions((prev) => prev.filter((s) => s.id !== submission.id));
+    toast.success("Submission deleted successfully");
     if (selectedSubmission?.id === submission.id) closeModal();
   };
 

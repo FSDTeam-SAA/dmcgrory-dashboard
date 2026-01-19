@@ -1,54 +1,35 @@
-"use client";
-
+"use client"
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { useDealers, useDeleteDealer } from "@/lib/hooks/useDealer";
+import { Dealer } from "@/lib/types/dealer";
+import { toast } from "sonner";
 
 export default function Overview() {
-  const [dealers] = useState([
-    {
-      id: 1,
-      createdDate: "28/12/2022",
-      dealerId: "DE3456",
-      dealerName: "Esther Howard",
-      email: "howard@gmail.com",
-    },
-    {
-      id: 2,
-      createdDate: "02/04/2022",
-      dealerId: "DE3258",
-      dealerName: "Kristin Watson",
-      email: "watson@gmail.com",
-    },
-    {
-      id: 3,
-      createdDate: "28/12/2022",
-      dealerId: "DE3456",
-      dealerName: "Esther Howard",
-      email: "howard@gmail.com",
-    },
-    {
-      id: 4,
-      createdDate: "02/04/2022",
-      dealerId: "DE3258",
-      dealerName: "Kristin Watson",
-      email: "watson@gmail.com",
-    },
-    {
-      id: 5,
-      createdDate: "28/12/2022",
-      dealerId: "DE3456",
-      dealerName: "Esther Howard",
-      email: "howard@gmail.com",
-    },
-    {
-      id: 6,
-      createdDate: "02/04/2022",
-      dealerId: "DE3258",
-      dealerName: "Kristin Watson",
-      email: "watson@gmail.com",
-    },
-  ]);
+  const { data: dealersData, isLoading } = useDealers();
+  const deleteDealerMutation = useDeleteDealer();
+
+  // Use real data from API
+  const dealers = useMemo(() => {
+    return dealersData?.data || [];
+  }, [dealersData]);
+
+  // Take latest 5 dealers for overview
+  const latestDealers = useMemo(() => {
+    return dealers.slice(0, 5);
+  }, [dealers]);
+
+  const totalDealersCount = dealersData?.meta?.total || 0;
+
+  const handleDelete = async (dealer: Dealer) => {
+    try {
+      await deleteDealerMutation.mutateAsync(dealer._id);
+      toast.success("Dealer deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete dealer:", error);
+    }
+  };
 
   return (
     <motion.div
@@ -92,7 +73,9 @@ export default function Overview() {
             <div className="text-blue-100 text-sm mb-2 font-medium">
               Total Dealer
             </div>
-            <div className="text-white text-4xl font-bold">123 Dealers</div>
+            <div className="text-white text-4xl font-bold">
+              {isLoading ? "..." : `${totalDealersCount} Dealers`}
+            </div>
           </motion.div>
 
           {/* Submissions Card */}
@@ -124,7 +107,7 @@ export default function Overview() {
             </p>
           </div>
 
-          <div className="overflow-x">
+          <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-slate-100">
@@ -133,6 +116,9 @@ export default function Overview() {
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                     Dealer ID
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
+                    VIN
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                     Dealer&apos;s Name
@@ -146,36 +132,69 @@ export default function Overview() {
                 </tr>
               </thead>
               <tbody>
-                {dealers.map((dealer) => (
-                  <tr key={dealer.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 text-sm text-center text-slate-700 border border-slate-300 ">
-                      {dealer.createdDate}
-                    </td>
-
-                    <td className="px-6 py-4 text-sm text-center font-medium text-slate-800 border border-slate-300">
-                      {dealer.dealerId}
-                    </td>
-
-                    <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
-                      {dealer.dealerName}
-                    </td>
-
-                    <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
-                      {dealer.email}
-                    </td>
-
-                    <td className="px-6 py-4 text-sm text-center border border-slate-300">
-                      <button className="inline-flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition cursor-pointer">
-                        <Trash2 size={18} />
-                      </button>
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                    >
+                      Loading dealers...
                     </td>
                   </tr>
-                ))}
+                ) : latestDealers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                    >
+                      No dealers found.
+                    </td>
+                  </tr>
+                ) : (
+                  latestDealers.map((dealer: Dealer) => (
+                    <tr
+                      key={dealer._id}
+                      className="hover:bg-slate-50 transition"
+                    >
+                      <td className="px-6 py-4 text-sm text-center text-slate-700 border border-slate-300 ">
+                        {dealer.createdAt
+                          ? new Date(dealer.createdAt).toLocaleDateString(
+                              "en-GB",
+                            )
+                          : "—"}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center font-medium text-slate-800 border border-slate-300">
+                        {dealer.dealerId}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                        {dealer.vin}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
+                        {dealer.dealerName}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                        {dealer.email}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center border border-slate-300">
+                        <button
+                          onClick={() => handleDelete(dealer)}
+                          className="inline-flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition cursor-pointer"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
-        
       </div>
     </motion.div>
   );
