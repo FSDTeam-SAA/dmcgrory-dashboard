@@ -36,4 +36,21 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Response interceptor
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    const message =
+      error.response?.data?.message || error.message || "Something went wrong";
+    // Avoid double toasting if the component already handles it?
+    // User asked for "all" so we handle it here.
+    import("sonner").then(({ toast }) => {
+      toast.error(message);
+    });
+    return Promise.reject(error);
+  },
+);
+
 export default axiosInstance;

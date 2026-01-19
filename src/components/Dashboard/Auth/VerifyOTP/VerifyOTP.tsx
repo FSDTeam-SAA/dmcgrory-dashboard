@@ -9,7 +9,7 @@ export default function VerifyOTP() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const router = useRouter();
 
-  const { handleVerifyOtp, handleResendOtp, loading } = useAuth();
+  const { handleVerifyOtp, loading } = useAuth();
 
   //  Timer
   const [timer, setTimer] = useState(0);
@@ -60,21 +60,6 @@ export default function VerifyOTP() {
     }
   };
 
-  //  Resend OTP
-  const handleResend = async () => {
-    if (!canResend) return;
-
-    const res = await handleResendOtp();
-
-    if (res?.success) {
-      toast.success("OTP sent again successfully ✔");
-    } else {
-      toast.error("Failed to resend OTP");
-    }
-
-    setTimer(30);
-    setCanResend(false);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF8F6]">
@@ -108,35 +93,9 @@ export default function VerifyOTP() {
           ))}
         </div>
 
-        {/* Timer + Resend */}
-        <div className="flex justify-between items-center text-sm text-[#343A40] mb-6">
-          <div className="flex items-center gap-2">
-            <span>⏱</span>
-            <span>{String(timer).padStart(2, "0")} Second</span>
-          </div>
-
-          <div className="items-end">
-            <span className="text-[#343A40] text-md mr-2 mb-1">
-              Didn’t get a code?
-            </span>
-
-            <button
-              onClick={handleResend}
-              disabled={!canResend}
-              className={`font-medium ${
-                canResend
-                  ? "text-[#0B3B36] hover:underline cursor-pointer"
-                  : "text-[#343A40] cursor-not-allowed"
-              }`}
-            >
-              Resend
-            </button>
-          </div>
-        </div>
-
         <button
-          className={`w-full bg-[#0B3B36] text-white py-3 rounded-md text-lg font-medium transition
-    ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0B3B36] cursor-pointer"}
+          className={`w-full bg-[#07589E] text-white py-3 rounded-md text-lg font-medium transition
+    ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#07589E] cursor-pointer"}
   `}
           onClick={handleVerify}
           disabled={loading}
