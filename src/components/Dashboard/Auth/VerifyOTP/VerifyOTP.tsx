@@ -43,23 +43,25 @@ export default function VerifyOTP() {
   // Verify OTP
   const handleVerify = async () => {
     const otpCode = otp.join("");
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
 
-    const res = await handleVerifyOtp(otpCode);
+    const res = await handleVerifyOtp(otpCode, email);
 
     if (res?.success) {
       toast.success("OTP verified successfully!");
 
-      const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get("token");
 
       setTimeout(() => {
-        router.push(`/reset-password?token=${encodeURIComponent(token || "")}`);
+        router.push(
+          `/reset-password?token=${encodeURIComponent(token || "")}&email=${encodeURIComponent(email)}`,
+        );
       }, 1000);
     } else {
       toast.error(res?.message || "Failed to verify OTP");
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF8F6]">

@@ -4,7 +4,7 @@ import axiosInstance from "../instance/axios-instance";
 // Forgot Password
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await axiosInstance.post("/auth/forgot-password", {
+    const response = await axiosInstance.post("/auth/forget-password", {
       email,
     });
 
@@ -21,16 +21,9 @@ export const forgotPassword = async (email: string) => {
 };
 
 // Verify OTP
-export const verifyOtp = async (
-  payload: { otp: string },
-  tokenFromURL: string,
-) => {
+export const verifyOtp = async (payload: { otp: string; email: string }) => {
   try {
-    const response = await axiosInstance.post("/auth/verify-otp", payload, {
-      headers: {
-        _customToken: tokenFromURL,
-      },
-    });
+    const response = await axiosInstance.post("/auth/verify-code", payload);
 
     return { success: true, data: response.data };
   } catch {
@@ -45,7 +38,7 @@ export const verifyOtp = async (
 export const resendForgotOtp = async (tokenFromURL: string) => {
   try {
     const response = await axiosInstance.post(
-      "/auth/resend-forgot-otp",
+      "/auth/reset-password",
       {},
       {
         headers: {
@@ -67,20 +60,12 @@ export const resendForgotOtp = async (tokenFromURL: string) => {
 };
 
 // Reset Password
-export const resetPassword = async (
-  newPassword: string,
-  tokenFromURL: string,
-) => {
+export const resetPassword = async (payload: {
+  email: string;
+  newPassword: string;
+}) => {
   try {
-    const response = await axiosInstance.post(
-      "/auth/reset-password",
-      { newPassword },
-      {
-        headers: {
-          _customToken: tokenFromURL,
-        },
-      },
-    );
+    const response = await axiosInstance.post("/auth/reset-password", payload);
 
     return { success: true, data: response.data };
   } catch {

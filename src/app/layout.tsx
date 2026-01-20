@@ -27,9 +27,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard Template.",
+  title: "Fleet Core",
   description:
-    "A modern dashboard template built with Next.js and Tailwind CSS.",
+    "Fleet Core is a modern dashboard template for fleet management.",
 };
 
 export default function RootLayout({
