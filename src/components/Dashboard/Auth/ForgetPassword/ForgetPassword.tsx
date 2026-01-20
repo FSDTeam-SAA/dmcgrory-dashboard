@@ -17,12 +17,13 @@ export default function ForgetPassword() {
 
   const handleSendCode = async () => {
     const response = await handleForgotPassword(email);
+    console.log(response);
 
-    if (response.success && response.data?.data?.accessToken) {
+    if (response.success) {
       toast.success("Reset code sent successfully!");
       // Get the accessToken
-      const accessToken = response.data.data.accessToken;
-      router.push(`/verify-otp?token=${encodeURIComponent(accessToken)}`);
+
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
     }
   };
 

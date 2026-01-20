@@ -33,21 +33,11 @@ export default function useAuth() {
   };
 
   // Handle OTP verification
-  const handleVerifyOtp = async (otp: string) => {
+  const handleVerifyOtp = async (otp: string, email: string) => {
     setLoading(true);
     setError(null);
 
-    // Extract token from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get("token") || "";
-
-    if (!tokenFromURL) {
-      setError("Invalid or missing token");
-      setLoading(false);
-      return { success: false, message: "No token found in URL" };
-    }
-
-    const res = await verifyOtp({ otp }, tokenFromURL);
+    const res = await verifyOtp({ otp, email });
 
     if (res.success) {
       setResult(res.data);
@@ -90,17 +80,17 @@ export default function useAuth() {
     setLoading(true);
     setError(null);
 
-    // Get token from URL
+    // Get email from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get("token") || "";
+    const email = urlParams.get("email") || "";
 
-    if (!tokenFromURL) {
-      setError("Invalid or missing token");
+    if (!email) {
+      setError("Email not found");
       setLoading(false);
-      return { success: false, message: "No token found in URL" };
+      return { success: false, message: "Email not found in URL" };
     }
 
-    const res = await resetPassword(newPassword, tokenFromURL);
+    const res = await resetPassword({ email, newPassword });
 
     if (res.success) {
       setResult(res.data);
