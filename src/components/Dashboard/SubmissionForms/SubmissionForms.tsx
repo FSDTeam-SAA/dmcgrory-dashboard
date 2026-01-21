@@ -115,10 +115,25 @@ export default function SubmissionForms() {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan={6}
-                  className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                  colSpan={7}
+                  className="px-6 py-10 border border-slate-300 bg-white"
                 >
-                  Loading submissions...
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    {/* Spinner */}
+                    <div className="h-10 w-10 rounded-full border-4 border-slate-200 border-t-[#07589E] animate-spin" />
+
+                    {/* Text */}
+                    <p className="text-sm text-slate-600 font-medium">
+                      Loading submissions...
+                    </p>
+
+                    {/* Skeleton lines */}
+                    <div className="w-full max-w-md space-y-2">
+                      <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+                      <div className="h-3 w-5/6 bg-slate-100 rounded animate-pulse" />
+                      <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ) : pageItems.length === 0 ? (
@@ -154,7 +169,7 @@ export default function SubmissionForms() {
                     {submission.series}
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
-                    {submission.mileage.toLocaleString()} km
+                    {submission.mileage.toLocaleString()} miles
                   </td>
                   <td className="px-6 py-4 text-sm text-center font-medium text-emerald-600 border border-slate-300">
                     ${submission.floorPrice.toLocaleString()}
@@ -245,7 +260,7 @@ export default function SubmissionForms() {
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition"
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -273,7 +288,7 @@ export default function SubmissionForms() {
                 <InfoItem label="Series" value={selectedSubmission.series} />
                 <InfoItem
                   label="Mileage"
-                  value={`${selectedSubmission.mileage.toLocaleString()} km`}
+                  value={`${selectedSubmission.mileage.toLocaleString()} miles`}
                 />
                 <InfoItem label="Auction" value={selectedSubmission.auction} />
                 <InfoItem
@@ -284,16 +299,28 @@ export default function SubmissionForms() {
                   label="Floor Price"
                   value={`$${selectedSubmission.floorPrice.toLocaleString()}`}
                 />
-                <div className="col-span-1 sm:col-span-2">
+                <div className="">
                   <InfoItem
                     label="Announcement"
                     value={selectedSubmission.announcement}
                   />
                 </div>
-                <div className="col-span-1 sm:col-span-2">
+                <div className="">
                   <InfoItem
                     label="Remarks"
                     value={selectedSubmission.remarks}
+                  />
+                </div>
+                <div className="">
+                  <InfoItem
+                    label="Auction Light"
+                    value={selectedSubmission.auctionLight}
+                  />
+                </div>
+                <div className="">
+                  <InfoItem
+                    label="Exterior Choice"
+                    value={selectedSubmission.exteriorChoice}
                   />
                 </div>
               </div>

@@ -56,21 +56,36 @@ export default function DealersTable() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const payload = {
-      dealerName: formData.get("dealerName") as string,
+
+    // New structure for logging
+    const allFormData = {
       dealerId: formData.get("dealerId") as string,
+      dealerName: formData.get("dealerName") as string,
       email: formData.get("email") as string,
       contact: formData.get("contact") as string,
-      vin: formData.get("vin") as string,
+      // vin: (formData.get("vin") as string) || "",
+      address: (formData.get("address") as string) || "",
+      age: (formData.get("age") as string) || "",
     };
+
+    console.log("🚀 Dealer Form Data (New Structure):", allFormData);
+
+    // Keep API payload as it is
+    // const payload = {
+    //   dealerName: formData.get("dealerName") as string,
+    //   dealerId: formData.get("dealerId") as string,
+    //   email: formData.get("email") as string,
+    //   contact: formData.get("contact") as string,
+    //   vin: (formData.get("vin") as string) || "",
+    // };
 
     try {
       if (modalType === "add") {
-        await createDealerMutation.mutateAsync(payload);
+        await createDealerMutation.mutateAsync(allFormData);
       } else if (modalType === "edit" && selectedDealer) {
         await updateDealerMutation.mutateAsync({
           id: selectedDealer._id,
-          payload,
+          payload: allFormData,
         });
       }
       closeModal();
@@ -163,15 +178,17 @@ export default function DealersTable() {
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Dealer ID
               </th>
-              <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
-                VIN
-              </th>
 
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Dealer&apos;s Name
               </th>
+
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                 Dealer&apos;s Email
+              </th>
+
+              <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
+                Contact
               </th>
 
               <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300 rounded-tr-xl">
@@ -185,9 +202,24 @@ export default function DealersTable() {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                  className="px-6 py-10 border border-slate-300 bg-white"
                 >
-                  Loading dealers...
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    {/* Spinner */}
+                    <div className="h-10 w-10 rounded-full border-4 border-slate-200 border-t-[#07589E] animate-spin" />
+
+                    {/* Text */}
+                    <p className="text-sm text-slate-600 font-medium">
+                      Loading dealers...
+                    </p>
+
+                    {/* Skeleton lines */}
+                    <div className="w-full max-w-md space-y-2">
+                      <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+                      <div className="h-3 w-5/6 bg-slate-100 rounded animate-pulse" />
+                      <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ) : pageItems.length === 0 ? (
@@ -212,16 +244,16 @@ export default function DealersTable() {
                     {dealer.dealerId}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
-                    {dealer.vin}
-                  </td>
-
                   <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
                     {dealer.dealerName}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
                     {dealer.email}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                    {dealer.contact || "Not Provided"}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-center border border-slate-300">
@@ -353,7 +385,7 @@ export default function DealersTable() {
                 type="button"
                 aria-label="Close"
               >
-                <X size={18} />
+                <X size={18} className="cursor-pointer" />
               </button>
             </div>
 
@@ -382,7 +414,15 @@ export default function DealersTable() {
                     label="Contact Number"
                     value={selectedDealer?.contact}
                   />
-                  <InfoItem label="VIN" value={selectedDealer?.vin} />
+ 
+                  <InfoItem
+                    label="Address"
+                    value={selectedDealer?.address || "Not Provided"}
+                  />
+                  <InfoItem
+                    label="Age"
+                    value={selectedDealer?.age || "Not Provided"}
+                  />
                 </div>
               ) : (
                 <form
@@ -392,17 +432,17 @@ export default function DealersTable() {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormInput
-                      label="Dealer Name"
-                      name="dealerName"
-                      defaultValue={selectedDealer?.dealerName}
-                      placeholder="e.g. Esther Howard"
-                      required
-                    />
-                    <FormInput
                       label="Dealer ID"
                       name="dealerId"
                       defaultValue={selectedDealer?.dealerId}
                       placeholder="e.g. DE3456"
+                      required
+                    />
+                    <FormInput
+                      label="Dealer Name"
+                      name="dealerName"
+                      defaultValue={selectedDealer?.dealerName}
+                      placeholder="e.g. Esther Howard"
                       required
                     />
                     <FormInput
@@ -413,6 +453,7 @@ export default function DealersTable() {
                       placeholder="e.g. howard@gmail.com"
                       required
                     />
+ 
                     <FormInput
                       label="Contact Number"
                       name="contact"
@@ -421,10 +462,16 @@ export default function DealersTable() {
                       required
                     />
                     <FormInput
-                      label="VIN"
-                      name="vin"
-                      defaultValue={selectedDealer?.vin}
-                      placeholder="e.g. 1HGCM82633A004352"
+                      label="Address (Optional)"
+                      name="address"
+                      defaultValue={selectedDealer?.address}
+                      placeholder="e.g. 123 Main St, Anytown, USA"
+                    />
+                    <FormInput
+                      label="Age (Optional)"
+                      name="age"
+                      defaultValue={selectedDealer?.age}
+                      placeholder="e.g. 25"
                     />
                   </div>
                 </form>
