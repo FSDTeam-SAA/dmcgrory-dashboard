@@ -6,7 +6,9 @@ export interface Dealer {
   dealerName: string;
   email: string;
   contact: string;
-  vin: string;
+  // vin: string;
+  address?: string;
+  age?: string;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -48,5 +50,7 @@ export interface CreateDealerPayload {
   dealerName: string;
   email: string;
   contact: string;
-  vin: string;
+  vin?: string;
+  address?: string;
+  age?: string;
 }
