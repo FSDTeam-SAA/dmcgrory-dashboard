@@ -13,6 +13,8 @@ export interface Submission {
   remarks: string;
   createdAt: string;
   updatedAt: string;
+  exteriorChoice: string;
+  auctionLight: string;
   __v: number;
 }
 
