@@ -130,13 +130,13 @@ export default function Overview() {
                     Dealer ID
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
-                    VIN
-                  </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                     Dealer&apos;s Name
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
                     Dealer&apos;s Email
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300">
+                    Contact
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold tracking-wider text-slate-600 uppercase border border-slate-300 rounded-tr-xl">
                     Action
@@ -147,10 +147,25 @@ export default function Overview() {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={6}
-                      className="px-6 py-10 text-center text-sm text-slate-500 border border-slate-300"
+                      colSpan={7}
+                      className="px-6 py-10 border border-slate-300 bg-white"
                     >
-                      Loading dealers...
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        {/* Spinner */}
+                        <div className="h-10 w-10 rounded-full border-4 border-slate-200 border-t-[#07589E] animate-spin" />
+
+                        {/* Text */}
+                        <p className="text-sm text-slate-600 font-medium">
+                          Loading dealers...
+                        </p>
+
+                        {/* Skeleton lines */}
+                        <div className="w-full max-w-md space-y-2">
+                          <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+                          <div className="h-3 w-5/6 bg-slate-100 rounded animate-pulse" />
+                          <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ) : latestDealers.length === 0 ? (
@@ -180,16 +195,16 @@ export default function Overview() {
                         {dealer.dealerId}
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
-                        {dealer.vin}
-                      </td>
-
                       <td className="px-6 py-4 text-sm text-center font-semibold text-slate-800 border border-slate-300">
                         {dealer.dealerName}
                       </td>
 
                       <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
                         {dealer.email}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-center text-slate-600 border border-slate-300">
+                        {dealer.contact}
                       </td>
 
                       <td className="px-6 py-4 text-sm text-center border border-slate-300">
